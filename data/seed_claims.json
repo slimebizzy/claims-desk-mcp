@@ -1,0 +1,37 @@
+[
+  {
+    "id": "CL-1042", "policy": "HO3", "state": "TX", "peril": "hail",
+    "summary": "Hail damage to roof and skylights after the April storm.",
+    "date_of_loss": "2026-04-18", "catastrophe": true, "siu": false,
+    "adjuster": "dana.ruiz", "reserve": 18000,
+    "claimant": {"name": "Marisol Ortega", "phone": "512-555-0142", "email": "marisol.ortega@example.com"}
+  },
+  {
+    "id": "CL-1077", "policy": "HO3", "state": "CA", "peril": "wildfire",
+    "summary": "Total loss of dwelling in a wildfire under a declared state of emergency.",
+    "date_of_loss": "2026-01-09", "catastrophe": true, "siu": false,
+    "adjuster": "sam.okafor", "reserve": 140000,
+    "claimant": {"name": "Theo Lindqvist", "phone": "707-555-0188", "email": "theo.l@example.com"}
+  },
+  {
+    "id": "CL-1103", "policy": "PAP", "state": "TX", "peril": "theft",
+    "summary": "Vehicle reported stolen; coverage increased 30 days before the loss.",
+    "date_of_loss": "2026-03-02", "catastrophe": false, "siu": true,
+    "adjuster": "dana.ruiz", "reserve": 9500,
+    "claimant": {"name": "Rory Beckett", "phone": "214-555-0117", "email": "rbeckett@example.com"}
+  },
+  {
+    "id": "CL-1120", "policy": "HO3", "state": "CA", "peril": "water",
+    "summary": "Burst supply line under kitchen sink; drywall and cabinet damage.",
+    "date_of_loss": "2026-05-27", "catastrophe": false, "siu": false,
+    "adjuster": "dana.ruiz", "reserve": 6000,
+    "claimant": {"name": "Ana Paula Reis", "phone": "415-555-0163", "email": "apreis@example.com"}
+  },
+  {
+    "id": "CL-1131", "policy": "HO3", "state": "TX", "peril": "fire",
+    "summary": "Kitchen fire spread to attic; family displaced.",
+    "date_of_loss": "2026-06-11", "catastrophe": false, "siu": false,
+    "adjuster": "sam.okafor", "reserve": 210000,
+    "claimant": {"name": "Jamal Whitfield", "phone": "713-555-0199", "email": "jwhitfield@example.com"}
+  }
+]

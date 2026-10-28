@@ -1,0 +1,29 @@
+Dana: The roof inspection on CL-1042 came back: the whole roof and both skylights need replacing. Raise the reserve to $62,000.
+
+  -> claim.get {"claim_id": "CL-1042"}
+  <- {"id": "CL-1042", "policy": "HO3", "state": "TX", "peril": "hail", "summary": "Hail damage to roof and skylights after the April storm.", "date_of_loss": "2026-04-18", "catastrophe": true, "siu": false, "adjuster": "dana
+
+Claude: Change from 18,000 to 62,000 is >50%, need reason.
+
+  -> claim.set_reserve {"claim_id": "CL-1042", "amount": 62000, "reason": "Roof inspection completed: full roof replacement and replacement of both skylights required due to April hail damage.", "idempotency_key": "CL1042-reserve-62000-v1"}
+  <- error {"status": "approval_required", "request_id": "req_4197fa9ddf15", "digest": "sha256:3a1ebb8a05eac670b8d176fe4a78151b2cc590cce4594622b9e045c7b344e01c", "required_level": 3, "required_role": "Claims Supervisor", "rule": "$
+
+Claude: The reserve on CL-1042 is still $18,000. Raising it to $62,000 needs a Claims Supervisor to approve it.
+
+- **Why:** $62,000 is over your $50,000 limit as an Associate Adjuster on catastrophe claims (Claims Handling Guidelines §2.3).
+- **Approval request:** `req_4197fa9ddf15` (console: http://127.0.0.1:8800/console#req_4197fa9ddf15)
+- **Reason I gave:** the roof inspection found the whole roof and both skylights need replacing because of the April hail.
+
+Once a supervisor approves it, tell me and I'll check the request and resubmit the change with the approval id.
+
+... waiting for a supervisor to decide req_4197fa9ddf15 at http://127.0.0.1:8800/console#req_4197fa9ddf15
+
+Dana: Priya says she approved it. Go ahead.
+
+  -> approval.status {"request_id": "req_4197fa9ddf15"}
+  <- {"status": "approved", "request_id": "req_4197fa9ddf15", "claim_id": "CL-1042", "amount": 62000, "decided_by": "Priya Nair", "note": "", "approval_id": "apr_cc6e56666a77875d", "expires_at": 1793150974.9747672, "used": fa
+
+  -> claim.set_reserve {"claim_id": "CL-1042", "amount": 62000, "reason": "Roof inspection completed: full roof replacement and replacement of both skylights required due to April hail damage.", "idempotency_key": "CL1042-reserve-62000-v1"}  [approval apr_cc6e56666a77875d]
+  <- {"status": "updated", "claim_id": "CL-1042", "previous_reserve": 18000, "reserve": 62000, "version": 2, "approval_id": "apr_cc6e56666a77875d"}
+
+Claude: The reserve on CL-1042 is now $62,000, up from $18,000. I confirmed in the system that Priya Nair approved the request (approval `apr_cc6e56666a77875d`), then made the change with that approval.

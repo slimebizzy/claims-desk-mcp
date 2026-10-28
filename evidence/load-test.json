@@ -1,0 +1,23 @@
+{
+  "requests": 200,
+  "elapsed_s": 5.0,
+  "replicas": {
+    "r1": 100,
+    "r2": 100
+  },
+  "protocol_problems": [],
+  "lost_updates": {
+    "writes_sent": 60,
+    "writes_recorded": 60,
+    "replicas_that_wrote": 2,
+    "claim_version": 61,
+    "expected_version": 61
+  },
+  "idempotency": {
+    "keys": 20,
+    "sends": 40,
+    "applied": 20,
+    "replayed": 20
+  },
+  "pass": true
+}

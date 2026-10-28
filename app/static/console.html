@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Claims Desk Approvals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* A supervisor's queue. The one question on screen: should this exact change happen? */
+:root {
+  --bg: #eef0ec; --surface: #f8f9f6; --raised: #ffffff; --ink: #1b1f27; --soft: #646a72; --faint: #8b9098;
+  --line: #d7dbd3; --sage: #dfe6d6; --sage-ink: #2e4239; --pine: #2e4239; --ochre: #c9912f; --ochre-bg: #f6ead2;
+  --red: #b4432f; --red-bg: #f7e3dd; --green: #2f6b4f; --green-bg: #dcebe1;
+  --serif: "Young Serif", Georgia, serif; --sans: "Figtree", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --r: 18px; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171b1a; --surface: #1f2423; --raised: #262c2a; --ink: #eef0ec; --soft: #a9b0ab; --faint: #7d847f;
+    --line: #333b38; --sage: #2a3631; --sage-ink: #cfe0d3; --pine: #9cc2ae; --ochre: #e2b062; --ochre-bg: #3a3122;
+    --red: #e88f7c; --red-bg: #3d2621; --green: #8fcfa9; --green-bg: #213329; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 400 15px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+button, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ochre); outline-offset: 2px; border-radius: 8px; }
+.mono { font-family: var(--mono); font-size: 12px; letter-spacing: .02em; }
+.muted { color: var(--soft); }
+[hidden] { display: none !important; }
+
+header.top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 14px 22px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.brand { font: 400 21px/1 var(--serif); letter-spacing: -.01em; }
+.brand small { font: 400 12px var(--mono); color: var(--soft); margin-left: 10px; letter-spacing: .02em; }
+.tabs { display: flex; gap: 4px; margin-left: 12px; padding: 4px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.tabs button { border: 0; background: none; padding: 6px 14px; border-radius: 999px; cursor: pointer; color: var(--soft); font-weight: 500; }
+.tabs button[aria-selected="true"] { background: var(--raised); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.tabs .count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px; border-radius: 99px; background: var(--ochre); color: #1b1f27; font: 600 11px var(--sans); }
+.me { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.avatar { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--sage); color: var(--sage-ink); font: 600 12px var(--sans); }
+.chip b { font-weight: 600; }
+.link { border: 0; background: none; color: var(--soft); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 4px; }
+
+/* sign in */
+.signin { max-width: 560px; margin: 10vh auto 0; padding: 0 20px; }
+.signin h1 { font: 400 clamp(34px, 5vw, 48px)/1.05 var(--serif); margin: 0 0 10px; letter-spacing: -.02em; }
+.people { display: grid; gap: 12px; margin-top: 26px; }
+.person { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 16px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); cursor: pointer; transition: border-color .2s, transform .2s; }
+.person:hover { border-color: var(--ochre); transform: translateY(-1px); }
+.person .avatar { width: 40px; height: 40px; font-size: 14px; }
+.person b { display: block; font-weight: 600; }
+.note { margin-top: 18px; font-size: 13px; color: var(--soft); }
+
+/* layout */
+.layout { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; min-height: calc(100vh - 61px); }
+.queue { border-right: 1px solid var(--line); padding: 18px 14px; overflow-y: auto; max-height: calc(100vh - 61px); position: sticky; top: 61px; }
+.queue h2 { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--soft); margin: 10px 8px 10px; }
+.item { display: grid; gap: 4px; width: 100%; text-align: left; padding: 12px 14px; margin-bottom: 6px; border-radius: 14px; border: 1px solid transparent; background: none; cursor: pointer; }
+.item:hover { background: var(--surface); }
+.item[aria-current="true"] { background: var(--raised); border-color: var(--line); box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+.item .row { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.item .who { font-weight: 600; }
+.item .amt { font-variant-numeric: tabular-nums; }
+.item .sub { font-size: 13px; color: var(--soft); display: flex; justify-content: space-between; gap: 8px; }
+.empty { padding: 18px 10px; color: var(--soft); font-size: 14px; }
+.status { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--sans); padding: 2px 9px; border-radius: 99px; white-space: nowrap; }
+.status.pending { background: var(--ochre-bg); color: var(--ochre); }
+.status.approved, .status.used { background: var(--green-bg); color: var(--green); }
+.status.denied, .status.expired { background: var(--red-bg); color: var(--red); }
+
+.detail { padding: clamp(20px, 4vw, 44px); max-width: 860px; }
+.eyebrow { font: 500 12px var(--mono); color: var(--soft); letter-spacing: .04em; }
+.detail h1 { font: 400 clamp(26px, 3.2vw, 36px)/1.15 var(--serif); margin: 8px 0 22px; letter-spacing: -.015em; }
+
+.change { padding: 22px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
+.amounts { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.amounts .from { font: 400 22px var(--serif); color: var(--soft); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--soft) 50%, transparent); }
+.amounts .arrow { color: var(--faint); }
+.amounts .to { font: 400 40px/1 var(--serif); letter-spacing: -.02em; }
+.amounts .delta { font: 600 13px var(--sans); padding: 3px 10px; border-radius: 99px; background: var(--ochre-bg); color: var(--ochre); }
+.scale { position: relative; margin: 30px 0 8px; height: 10px; border-radius: 99px; background: var(--line); }
+.scale .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: var(--ochre); }
+.scale .old { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: var(--faint); opacity: .55; }
+.mark { position: absolute; top: -8px; bottom: -8px; width: 2px; background: var(--ink); }
+.mark span { position: absolute; top: 22px; transform: translateX(-50%); white-space: nowrap; font: 500 11px var(--sans); color: var(--soft); }
+.mark.you { background: var(--pine); }
+.mark.you span { color: var(--pine); top: -22px; }
+.scale-pad { height: 26px; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+.card { padding: 18px 20px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
+.card h3 { margin: 0 0 8px; font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--soft); }
+.card p { margin: 0; }
+.quote { font-style: italic; }
+dl.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 14px; }
+dl.facts dt { color: var(--soft); }
+dl.facts dd { margin: 0; }
+.flag { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 99px; font: 600 12px var(--sans); background: var(--red-bg); color: var(--red); }
+
+.binding { margin-top: 14px; padding: 18px 20px; border-radius: var(--r); border: 1px dashed color-mix(in srgb, var(--pine) 50%, var(--line)); background: color-mix(in srgb, var(--sage) 45%, transparent); }
+.binding h3 { margin: 0 0 6px; font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--pine); }
+.binding ul { margin: 8px 0 0; padding-left: 18px; }
+.binding li { margin: 2px 0; }
+.digest { margin-top: 10px; word-break: break-all; color: var(--soft); }
+
+.decide { margin-top: 20px; display: grid; gap: 12px; }
+.decide label { font-weight: 600; font-size: 14px; }
+.decide textarea { width: 100%; min-height: 72px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--raised); resize: vertical; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn { border: 0; border-radius: 999px; padding: 12px 22px; font-weight: 600; cursor: pointer; transition: transform .1s, opacity .2s; }
+.btn:active { transform: scale(.98); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn.approve { background: var(--pine); color: #fff; }
+@media (prefers-color-scheme: dark) { .btn.approve { color: #10201a; } }
+.btn.deny { background: none; border: 1px solid var(--line); color: var(--ink); }
+.blocked { font-size: 14px; color: var(--red); }
+.result { margin-top: 18px; padding: 16px 20px; border-radius: var(--r); }
+.result.ok { background: var(--green-bg); color: var(--green); }
+.result.no { background: var(--red-bg); color: var(--red); }
+.result b { font-weight: 600; }
+.toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); padding: 10px 16px; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.2); }
+
+/* audit */
+.audit { padding: 22px; overflow-x: auto; }
+.audit table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 860px; }
+.audit th { text-align: left; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--soft); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.audit td.args { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--soft); }
+.audit td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.audit td.mono { white-space: nowrap; }
+.dec { font: 600 11px var(--sans); padding: 2px 8px; border-radius: 99px; background: var(--surface); border: 1px solid var(--line); }
+.dec.allow, .dec.approved { color: var(--green); border-color: transparent; background: var(--green-bg); }
+.dec.deny, .dec.reject, .dec.denied, .dec.invalid { color: var(--red); border-color: transparent; background: var(--red-bg); }
+.dec.approval_required { color: var(--ochre); border-color: transparent; background: var(--ochre-bg); }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .queue { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--line); }
+  .grid2 { grid-template-columns: 1fr; }
+  header.top { flex-wrap: wrap; padding: 12px 16px; }
+  .brand small { display: none; }
+  .tabs { order: 3; margin-left: 0; }
+  .detail { padding: 22px 16px; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="brand">Claims Desk<small>Cobalt Harbor Mutual · fictional</small></span>
+  <nav class="tabs" role="tablist" aria-label="Views" id="tabs" hidden>
+    <button role="tab" aria-selected="true" data-view="queue">Approvals<span class="count" id="count" hidden></span></button>
+    <button role="tab" aria-selected="false" data-view="audit">Audit trail</button>
+  </nav>
+  <div class="me" id="me" hidden></div>
+</header>
+
+<section class="signin" id="signin" hidden>
+  <p class="eyebrow">Reserve approvals</p>
+  <h1>Who's reviewing today?</h1>
+  <p class="muted">Adjusters ask for a reserve above their authority through the Claims Desk MCP server. Each request lands here for someone with enough authority to approve it.</p>
+  <div class="people" id="people"></div>
+  <p class="note">Demo sign-in. In a real deployment this is your company's single sign-on.</p>
+</section>
+
+<main id="app" hidden>
+  <div class="layout" id="queueView">
+    <aside class="queue" aria-label="Requests">
+      <h2>Waiting on you</h2><div id="pending"></div>
+      <div id="aboveWrap" hidden><h2>Needs higher authority</h2><div id="above"></div></div>
+      <h2>Decided</h2><div id="decided"></div>
+    </aside>
+    <section class="detail" id="detail" aria-live="polite"></section>
+  </div>
+  <div class="audit" id="auditView" hidden></div>
+</main>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const money = (n) => n == null ? "No limit" : "$" + Math.round(n).toLocaleString("en-US");
+const initials = (name) => (name || "?").split(/\s+/).map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v; else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : String(kid));
+  return el;
+}
+function ago(ts, now) {
+  const s = Math.max(0, now - ts);
+  if (s < 60) return "just now";
+  if (s < 3600) return Math.floor(s / 60) + " min ago";
+  if (s < 86400) return Math.floor(s / 3600) + " h ago";
+  return Math.floor(s / 86400) + " d ago";
+}
+function clock(ts) { return new Date(ts * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 2600); }
+
+let token = null, state = { me: null, requests: [], now: Date.now() / 1000 }, selected = null, view = "queue";
+try { token = sessionStorage.getItem("cd-token"); } catch (_) {}
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { ...opts, headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}), ...(opts.headers || {}) } });
+  const body = await r.json().catch(() => ({}));
+  if (r.status === 401) { signOut(); throw new Error(body.error_description || "Signed out"); }
+  if (!r.ok) throw new Error(body.error || body.error_description || "Request failed");
+  return body;
+}
+
+async function showSignin() {
+  $("#signin").hidden = false; $("#app").hidden = true; $("#tabs").hidden = true; $("#me").hidden = true;
+  const { people } = await fetch("/console/api/people").then((r) => r.json());
+  const box = $("#people"); box.replaceChildren();
+  for (const p of people) {
+    box.append(h("button", { class: "person", onclick: () => signIn(p.id) },
+      h("span", { class: "avatar" }, initials(p.name)),
+      h("span", {}, h("b", {}, p.name), h("span", { class: "muted" }, `${p.title} · ${p.level >= 4 ? "approves any amount" : "approves up to " + money({ 3: 250000 }[p.level])}`))));
+  }
+}
+async function signIn(user) {
+  const r = await fetch("/console/api/dev-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user }) }).then((r) => r.json());
+  token = r.token; try { sessionStorage.setItem("cd-token", token); } catch (_) {}
+  start();
+}
+function signOut() { token = null; try { sessionStorage.removeItem("cd-token"); } catch (_) {} clearInterval(start.timer); showSignin(); }
+
+async function refresh() {
+  state = await api("/console/api/requests");
+  const want = location.hash.slice(1);
+  if (want && state.requests.some((r) => r.id === want)) selected = want;
+  if (!selected || !state.requests.some((r) => r.id === selected)) {
+    const mine = (r) => state.me.limit == null || r.amount <= state.me.limit;
+    selected = (state.requests.find((r) => r.status === "pending" && mine(r)) || state.requests.find((r) => r.status === "pending")
+      || state.requests[0] || {}).id || null;
+  }
+  render();
+  if (view === "audit") renderAudit();
+}
+
+function start() {
+  $("#signin").hidden = true; $("#app").hidden = false; $("#tabs").hidden = false; $("#me").hidden = false;
+  refresh().catch((e) => toast(e.message));
+  clearInterval(start.timer); start.timer = setInterval(() => refresh().catch(() => {}), 4000);
+}
+
+function statusOf(r) {
+  if (r.status === "approved" && r.approval && r.approval.used_at) return ["used", "Approved · used"];
+  return [r.status, { pending: "Waiting", approved: "Approved", denied: "Denied", expired: "Expired" }[r.status] || r.status];
+}
+
+function render() {
+  const me = state.me;
+  $("#me").replaceChildren(h("span", { class: "chip" }, h("span", { class: "avatar" }, initials(me.name)),
+    h("span", {}, h("b", {}, me.name), " ", h("span", { class: "muted" }, "· " + me.title))),
+    h("button", { class: "link", onclick: signOut }, "Switch"));
+
+  const mine = (r) => me.limit == null || r.amount <= me.limit;
+  const pending = state.requests.filter((r) => r.status === "pending" && mine(r));
+  const above = state.requests.filter((r) => r.status === "pending" && !mine(r));
+  const decided = state.requests.filter((r) => r.status !== "pending");
+  const count = $("#count"); count.hidden = !pending.length; count.textContent = pending.length;
+  const row = (r) => {
+    const [cls, label] = statusOf(r);
+    return h("button", { class: "item", "aria-current": r.id === selected ? "true" : "false", onclick: () => { selected = r.id; history.replaceState(null, "", "#" + r.id); render(); } },
+      h("span", { class: "row" }, h("span", { class: "who" }, r.actor_name), h("span", { class: "amt" }, money(r.amount))),
+      h("span", { class: "sub" }, h("span", {}, `${r.claim_id} · ${ago(r.created, state.now)}`), h("span", { class: "status " + cls }, label)));
+  };
+  $("#pending").replaceChildren(...(pending.length ? pending.map(row) : [h("p", { class: "empty" }, "Nothing waiting. Requests appear here the moment an adjuster asks.")]));
+  $("#aboveWrap").hidden = !above.length;
+  $("#above").replaceChildren(...above.map(row));
+  $("#decided").replaceChildren(...(decided.length ? decided.map(row) : [h("p", { class: "empty" }, "No decisions yet.")]));
+  // Polling must not wipe a note mid-sentence: redraw the detail only when it changed.
+  const cur = state.requests.find((r) => r.id === selected);
+  const sig = cur ? [cur.id, cur.status, cur.approval && cur.approval.used_at, me.id].join("|") : "none";
+  if (sig !== render.sig) { render.sig = sig; renderDetail(cur); }
+}
+
+function renderDetail(r) {
+  const box = $("#detail");
+  if (!r) { box.replaceChildren(h("p", { class: "eyebrow" }, "No requests"), h("h1", {}, "The queue is clear."), h("p", { class: "muted" }, "Run the demo client to send a reserve change above an adjuster's authority.")); return; }
+  const me = state.me, c = r.claim || {};
+  const up = r.amount >= r.current_reserve;
+  const pct = r.current_reserve ? Math.round(((r.amount - r.current_reserve) / r.current_reserve) * 100) : null;
+  const top = Math.max(r.amount, r.current_reserve, r.actor_limit || 0, Math.min(me.limit || r.amount * 1.25, r.amount * 1.6)) * 1.1;
+  const at = (v) => Math.min(100, (v / top) * 100) + "%";
+  const canApprove = me.limit == null || r.amount <= me.limit;
+  const marks = [];
+  if (r.actor_limit != null) marks.push(h("span", { class: "mark", style: `left:${at(r.actor_limit)}` }, h("span", {}, `${r.actor_name.split(" ")[0]}'s limit ${money(r.actor_limit)}`)));
+  if (me.limit != null && me.limit <= top) marks.push(h("span", { class: "mark you", style: `left:${at(me.limit)}` }, h("span", {}, `Your limit ${money(me.limit)}`)));
+
+  const [cls, label] = statusOf(r);
+  const parts = [
+    h("p", { class: "eyebrow" }, `${r.claim_id} · requested ${ago(r.created, state.now)} · `, h("span", { class: "status " + cls }, label)),
+    h("h1", {}, `${r.actor_name} wants to ${up ? "raise" : "lower"} the reserve on `, h("span", { style: "white-space:nowrap" }, r.claim_id)),
+    h("div", { class: "change" },
+      h("div", { class: "amounts" }, h("span", { class: "from" }, money(r.current_reserve)), h("span", { class: "arrow", "aria-hidden": "true" }, "→"),
+        h("span", { class: "to" }, money(r.amount)), pct != null ? h("span", { class: "delta" }, (pct > 0 ? "+" : "") + pct + "%") : null),
+      h("div", { class: "scale", role: "img", "aria-label": `New reserve ${money(r.amount)}; ${r.actor_name}'s authority ${money(r.actor_limit)}; yours ${money(me.limit)}` },
+        h("span", { class: "fill", style: `width:${at(r.amount)}` }), h("span", { class: "old", style: `width:${at(r.current_reserve)}` }), ...marks),
+      h("div", { class: "scale-pad" })),
+    h("div", { class: "grid2" },
+      h("div", { class: "card" }, h("h3", {}, "Why it needs you"), h("p", {}, r.rule)),
+      h("div", { class: "card" }, h("h3", {}, `${r.actor_name.split(" ")[0]}'s file note`), r.reason ? h("p", { class: "quote" }, "“" + r.reason + "”") : h("p", { class: "muted" }, "No note."))),
+    h("div", { class: "card", style: "margin-top:14px" }, h("h3", {}, "The claim"),
+      h("p", { style: "margin-bottom:12px" }, c.summary || ""),
+      h("dl", { class: "facts" },
+        h("dt", {}, "Policy"), h("dd", {}, `${c.policy === "HO3" ? "Homeowners (HO-3)" : "Personal auto"} · ${c.state}`),
+        h("dt", {}, "Peril"), h("dd", {}, (c.peril || "") + (c.catastrophe ? " · declared catastrophe" : "")),
+        h("dt", {}, "Date of loss"), h("dd", {}, c.date_of_loss || ""),
+        h("dt", {}, "Claimant"), h("dd", {}, r.claimant || ""),
+        h("dt", {}, "Fraud review"), h("dd", {}, c.siu ? h("span", { class: "flag" }, "Under SIU review") : "None"))),
+    h("div", { class: "binding" }, h("h3", {}, "What an approval allows"),
+      h("p", {}, "One change, exactly as requested. Nothing else."),
+      h("ul", {}, h("li", {}, `Set ${r.claim_id} to ${money(r.amount)}, not a dollar more or less`), h("li", {}, `Only for ${r.actor_name}, only through the reserves server`),
+        h("li", {}, "Works once, and expires 15 minutes after you approve")),
+      h("p", { class: "digest mono" }, "Bound to " + r.digest)),
+  ];
+
+  if (r.status === "pending") {
+    const note = h("textarea", { id: "note", placeholder: "Optional for an approval. Tell the adjuster why if you deny.", maxlength: "500" });
+    const approve = h("button", { class: "btn approve", disabled: !canApprove, onclick: () => decide(r.id, true, note.value) }, `Approve ${money(r.amount)}`);
+    const deny = h("button", { class: "btn deny", onclick: () => decide(r.id, false, note.value) }, "Deny");
+    parts.push(h("div", { class: "decide" }, h("label", { for: "note" }, "Note to " + r.actor_name.split(" ")[0]), note,
+      h("div", { class: "actions" }, approve, deny,
+        canApprove ? null : h("span", { class: "blocked" }, `This needs ${r.required_title} authority. Yours covers up to ${money(me.limit)}.`))));
+  } else if (r.status === "approved") {
+    const used = r.approval && r.approval.used_at;
+    parts.push(h("div", { class: "result ok" }, h("b", {}, `Approved by ${r.decided_by_name} at ${clock(r.decided_at)}. `),
+      used ? `${r.actor_name.split(" ")[0]} used it at ${clock(r.approval.used_at)}; the reserve is now ${money(r.amount)}.`
+           : `Waiting for ${r.actor_name.split(" ")[0]} to apply it. Expires at ${clock(r.approval.expires)}.`,
+      h("div", { class: "mono", style: "margin-top:6px" }, r.approval_id)));
+  } else if (r.status === "denied") {
+    parts.push(h("div", { class: "result no" }, h("b", {}, `Denied by ${r.decided_by_name} at ${clock(r.decided_at)}. `), r.decision_note || ""));
+  } else {
+    parts.push(h("div", { class: "result no" }, h("b", {}, "Expired. "), "The adjuster has to ask again."));
+  }
+  box.replaceChildren(...parts);
+}
+
+async function decide(id, approve, note) {
+  try {
+    await api(`/console/api/requests/${id}/decision`, { method: "POST", body: JSON.stringify({ approve, note }) });
+    toast(approve ? "Approved. The adjuster can apply it now." : "Denied.");
+  } catch (e) { toast(e.message); }
+  refresh().catch(() => {});
+}
+
+async function renderAudit() {
+  const { events } = await api("/console/api/audit");
+  const rows = events.map((e) => h("tr", {},
+    h("td", { class: "mono" }, new Date(e.at * 1000).toLocaleTimeString()),
+    h("td", { class: "mono" }, e.replica), h("td", {}, e.actor || h("span", { class: "muted" }, "anonymous")),
+    h("td", { class: "mono" }, e.tool || e.method), h("td", {}, e.decision ? h("span", { class: "dec " + e.decision }, e.decision.replace("_", " ")) : ""),
+    h("td", {}, e.reason || ""), h("td", { class: "mono args", title: e.args_redacted ? JSON.stringify(e.args_redacted) : "" }, e.args_redacted ? JSON.stringify(e.args_redacted) : ""),
+    h("td", { class: "mono" }, e.latency_ms + " ms"), h("td", { class: "mono" }, e.trace_id ? e.trace_id.slice(0, 8) : "")));
+  $("#auditView").replaceChildren(h("table", {}, h("thead", {}, h("tr", {}, ...["Time", "Replica", "Who", "Tool", "Decision", "Reason", "Arguments (redacted)", "Latency", "Trace"].map((t) => h("th", {}, t)))), h("tbody", {}, rows)));
+}
+
+$("#tabs").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-view]"); if (!b) return;
+  view = b.dataset.view;
+  for (const t of $("#tabs").querySelectorAll("button")) t.setAttribute("aria-selected", String(t === b));
+  $("#queueView").hidden = view !== "queue"; $("#auditView").hidden = view !== "audit";
+  if (view === "audit") renderAudit().catch((e) => toast(e.message));
+});
+
+token ? start() : showSignin();
+</script>
+</body>
+</html>

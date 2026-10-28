@@ -1,0 +1,54 @@
+[
+  {
+    "record": "claims-desk-read.server.json",
+    "record_digest": "sha256:43ca96be6c90f3279973f585346fdfef469c9a852898811c1b6346a757e0409e",
+    "name": "io.github.slimebizzy/claims-desk-read",
+    "version": "1.0.0",
+    "published_remote": "http://127.0.0.1:8800/mcp/read",
+    "probed_remote": "http://127.0.0.1:8800/mcp/read",
+    "record_errors": [],
+    "live": {
+      "reachable": true,
+      "serverInfo": {
+        "name": "io.github.slimebizzy/claims-desk-read",
+        "version": "1.0.0"
+      },
+      "supportedVersions": [
+        "2026-07-28"
+      ],
+      "capabilities": {
+        "tools": {
+          "listChanged": false
+        }
+      },
+      "drift": []
+    },
+    "admit": true
+  },
+  {
+    "record": "claims-desk-reserves.server.json",
+    "record_digest": "sha256:f79a5c673818364aa95116a9f18549d8793864cc2c0588b9811102dacd953069",
+    "name": "io.github.slimebizzy/claims-desk-reserves",
+    "version": "1.0.0",
+    "published_remote": "http://127.0.0.1:8800/mcp/claims",
+    "probed_remote": "http://127.0.0.1:8800/mcp/claims",
+    "record_errors": [],
+    "live": {
+      "reachable": true,
+      "serverInfo": {
+        "name": "io.github.slimebizzy/claims-desk-reserves",
+        "version": "1.0.0"
+      },
+      "supportedVersions": [
+        "2026-07-28"
+      ],
+      "capabilities": {
+        "tools": {
+          "listChanged": false
+        }
+      },
+      "drift": []
+    },
+    "admit": true
+  }
+]
