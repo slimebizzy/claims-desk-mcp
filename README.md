@@ -112,7 +112,7 @@ This follows the stateless MCP revision `2026-07-28` and the course's
 
 | Check | Result | File |
 |---|---|---|
-| Unit and contract tests | 40 pass | `tests/` |
+| Unit and contract tests | 41 pass | `tests/` |
 | Wire cases, each sent directly to a replica and again through the load balancer | 14 of 14 pass; identical status and identical bytes both ways; no tokens in the capture | [`evidence/wire.jsonl`](evidence/wire.jsonl) |
 | 200 concurrent requests through a round-robin balancer, no affinity | 100 per replica; 60 concurrent writes to one claim from both replicas, none lost; 20 keys sent twice at once, each applied once | [`evidence/load-test.json`](evidence/load-test.json) |
 | Registry admission | both records admitted; pointing a record at the wrong endpoint is caught as drift | [`evidence/registry-report.json`](evidence/registry-report.json) |
@@ -122,7 +122,7 @@ This follows the stateless MCP revision `2026-07-28` and the course's
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-make test          # 40 tests, no network
+make test          # 41 tests, no network
 make cluster       # two replicas behind a balancer on :8800, fresh data
 make evidence      # wire, load and registry checks against the running cluster
 open http://127.0.0.1:8800/console

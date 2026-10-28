@@ -174,6 +174,15 @@ def test_approval_status_hides_other_peoples_requests(rpc):
     assert res["structuredContent"]["status"] == "not_found"
 
 
+def test_console_shows_the_limit_that_applied(rpc, client):
+    """CL-1042 is a hail claim in a declared catastrophe, so Dana's limit is the
+    §2.3 raise ($50,000), not her §2.1 title limit ($25,000)."""
+    _request(rpc)
+    tok = client.post("/console/api/dev-login", json={"user": "priya.nair"}).json()["token"]
+    req = client.get("/console/api/requests", headers={"Authorization": "Bearer " + tok}).json()["requests"][0]
+    assert req["actor_limit"] == 50_000 and "§2.3" in req["rule"]
+
+
 def test_asking_twice_reuses_the_pending_request(rpc):
     assert _request(rpc, key="k-twice-01") == _request(rpc, key="k-twice-02")
 

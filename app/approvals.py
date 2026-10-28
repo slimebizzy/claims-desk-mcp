@@ -32,7 +32,7 @@ def _sign(rec: dict) -> str:
 
 
 def create_request(conn: sqlite3.Connection, *, actor: str, tool: str, args: dict, digest: str, audience: str,
-                   claim: dict, amount: int, required_level: int, rule: str) -> dict:
+                   claim: dict, amount: int, actor_limit: Optional[int], required_level: int, rule: str) -> dict:
     # One pending request per exact action; asking again returns the same one.
     row = conn.execute("SELECT * FROM approval_requests WHERE actor=? AND digest=? AND audience=? AND status='pending' "
                        "AND expires > ?", (actor, digest, audience, store.now())).fetchone()
@@ -42,9 +42,9 @@ def create_request(conn: sqlite3.Connection, *, actor: str, tool: str, args: dic
     now = store.now()
     conn.execute(
         "INSERT INTO approval_requests (id, actor, tool, args, digest, audience, claim_id, current_reserve, amount, "
-        "required_level, rule, status, created, expires) VALUES (?,?,?,?,?,?,?,?,?,?,?, 'pending', ?, ?)",
+        "actor_limit, required_level, rule, status, created, expires) VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 'pending', ?, ?)",
         (rid, actor, tool, canonical(bound_args(args)), digest, audience, claim["id"], claim["reserve"], amount,
-         required_level, rule, now, now + config.REQUEST_TTL_S))
+         actor_limit, required_level, rule, now, now + config.REQUEST_TTL_S))
     return dict(conn.execute("SELECT * FROM approval_requests WHERE id=?", (rid,)).fetchone())
 
 

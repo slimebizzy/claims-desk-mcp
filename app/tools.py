@@ -192,7 +192,7 @@ def set_reserve(conn: sqlite3.Connection, caller: Caller, args: dict, meta: dict
                         f"(Claims Handling Guidelines {source}).")
                 req = approvals.create_request(conn, actor=actor, tool="claim.set_reserve", args=args,
                                                digest=args_digest, audience=audience, claim=claim, amount=new,
-                                               required_level=needed, rule=rule)
+                                               actor_limit=limit, required_level=needed, rule=rule)
                 return Outcome({"status": "approval_required", "request_id": req["id"], "digest": args_digest,
                                 "required_level": needed, "required_role": config.LEVEL_TITLES[needed], "rule": rule,
                                 "console_url": f"{config.PUBLIC_BASE_URL}/console#{req['id']}",

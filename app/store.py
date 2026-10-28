@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS idempotency (
 );
 CREATE TABLE IF NOT EXISTS approval_requests (
   id TEXT PRIMARY KEY, actor TEXT, tool TEXT, args TEXT, digest TEXT, audience TEXT,
-  claim_id TEXT, current_reserve INTEGER, amount INTEGER, required_level INTEGER, rule TEXT,
+  claim_id TEXT, current_reserve INTEGER, amount INTEGER, actor_limit INTEGER, required_level INTEGER, rule TEXT,
   status TEXT, created REAL, expires REAL, decided_by TEXT, decided_at REAL, decision_note TEXT, approval_id TEXT
 );
 CREATE TABLE IF NOT EXISTS approvals (

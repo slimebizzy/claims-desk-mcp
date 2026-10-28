@@ -220,7 +220,7 @@ def _enrich(conn, req: dict) -> dict:
     out.update({
         "actor_name": actor.get("name", req["actor"]), "actor_level": actor.get("level"),
         "actor_title": config.LEVEL_TITLES.get(actor.get("level", 0), ""),
-        "actor_limit": config.authority_limit(actor.get("level", 0)),
+        "actor_limit": req["actor_limit"],  # the limit that applied, including the §2.3 catastrophe raise
         "required_title": config.LEVEL_TITLES.get(req["required_level"], ""),
         "reason": args.get("reason", ""),
         "claim": {k: claim.get(k) for k in ("id", "policy", "state", "peril", "summary", "date_of_loss", "catastrophe",
